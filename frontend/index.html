@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recon Automation Platform</title>
+    <meta name="description" content="Automated bug bounty reconnaissance management and monitoring">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🎯</span>
+                    <span class="logo-text">ReconAuto</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard"
+                    title="Overview of your projects, scans, and vulnerabilities">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="projects"
+                    title="Manage your bug bounty targets - create and organize your recon projects">
+                    <span class="nav-icon">📁</span>
+                    <span>Projects</span>
+                </a>
+                <a href="#" class="nav-item" data-page="scans"
+                    title="View all running and completed scans across all projects">
+                    <span class="nav-icon">🔍</span>
+                    <span>Scans</span>
+                </a>
+                <a href="#" class="nav-item" data-page="vulnerabilities"
+                    title="View all discovered security vulnerabilities">
+                    <span class="nav-icon">⚠️</span>
+                    <span>Vulnerabilities</span>
+                </a>
+                <a href="#" class="nav-item" data-page="tools"
+                    title="Check which security tools are installed and available">
+                    <span class="nav-icon">🛠️</span>
+                    <span>Tools Status</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="tool-status">
+                    <span class="status-dot"></span>
+                    <span id="tools-count">Loading...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="new-project-btn">
+                        <span>+ New Project</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <section class="page active" id="dashboard-page">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon projects-icon">📁</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-projects">0</span>
+                            <span class="stat-label">Projects</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon scans-icon">🔍</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="active-scans">0</span>
+                            <span class="stat-label">Active Scans</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon subdomains-icon">🌐</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-subdomains">0</span>
+                            <span class="stat-label">Subdomains</span>
+                        </div>
+                    </div>
+                    <div class="stat-card critical">
+                        <div class="stat-icon vulns-icon">⚠️</div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="critical-vulns">0</span>
+                            <span class="stat-label">Critical Vulns</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Projects -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Projects</h2>
+                        <a href="#" class="view-all" data-page="projects">View All →</a>
+                    </div>
+                    <div class="card-content">
+                        <div id="recent-projects" class="projects-list">
+                            <p class="empty-state">No projects yet. Create one to get started!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Scans -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Scans</h2>
+                    </div>
+                    <div class="card-content">
+                        <div id="recent-scans" class="scans-list">
+                            <p class="empty-state">No scans yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects Page -->
+            <section class="page" id="projects-page">
+                <div class="projects-grid" id="projects-grid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Project Detail Page -->
+            <section class="page" id="project-detail-page">
+                <div class="project-header">
+                    <button class="btn btn-secondary back-btn" onclick="showPage('projects')">← Back</button>
+                    <h2 id="project-name">Project Name</h2>
+                    <span class="domain-badge" id="project-domain">example.com</span>
+                    <button class="btn btn-danger delete-project-btn" id="delete-project-btn"
+                        title="Permanently delete this project and all its data">
+                        🗑️ Delete Project
+                    </button>
+                </div>
+
+                <div class="project-stats" id="project-stats"></div>
+
+                <div class="scan-controls">
+                    <h3>🚀 Start New Scan</h3>
+                    <p class="scan-help-intro">Choose a scan type below. For beginners, start with Subdomain → Alive
+                        Check → URL Collection in order.</p>
+
+                    <div class="scan-types">
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="subdomain"
+                                title="Find all subdomains of the target domain (e.g., api.example.com, mail.example.com)">
+                                🔎 Subdomain
+                            </button>
+                            <span class="scan-help-text">Step 1: Discover all subdomains using subfinder, amass, and
+                                crt.sh</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="alive"
+                                title="Check which discovered subdomains are actually online and responding">
+                                ✅ Alive Check
+                            </button>
+                            <span class="scan-help-text">Step 2: Check which subdomains are online and gather info
+                                (requires subdomain scan first)</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="urls"
+                                title="Gather URLs from archives, crawling, and other sources for testing">
+                                🔗 URL Collection
+                            </button>
+                            <span class="scan-help-text">Step 3: Collect URLs from wayback, crawlers for vulnerability
+                                testing</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="nuclei"
+                                title="Run Nuclei template-based vulnerability scanner for known CVEs and misconfigurations">
+                                ☢️ Nuclei Scan
+                            </button>
+                            <span class="scan-help-text">Scan for known vulnerabilities using Nuclei templates</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="xss"
+                                title="Test for Cross-Site Scripting vulnerabilities that could allow script injection">
+                                💉 XSS Scan
+                            </button>
+                            <span class="scan-help-text">Find Cross-Site Scripting bugs using dalfox and kxss</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="sqli"
+                                title="Test for SQL Injection vulnerabilities in URL parameters">
+                                💾 SQLi Scan
+                            </button>
+                            <span class="scan-help-text">Find SQL Injection vulnerabilities using sqlmap and
+                                ghauri</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper">
+                            <button class="scan-type-btn" data-type="fuzzing"
+                                title="Discover hidden directories and files on web servers">
+                                📂 Fuzzing
+                            </button>
+                            <span class="scan-help-text">Find hidden files and directories using ffuf and
+                                dirsearch</span>
+                        </div>
+
+                        <div class="scan-btn-wrapper full-width">
+                            <button class="scan-type-btn full" data-type="full"
+                                title="Run the entire recon pipeline automatically: subdomain → alive → urls → all vulnerability scans">
+                                🚀 Full Pipeline
+                            </button>
+                            <span class="scan-help-text">⚡ Run everything automatically - best for complete recon (takes
+                                2-4 hours)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Tabs -->
+                <div class="results-tabs">
+                    <button class="tab-btn active" data-tab="subdomains">Subdomains</button>
+                    <button class="tab-btn" data-tab="urls">URLs</button>
+                    <button class="tab-btn" data-tab="vulnerabilities">Vulnerabilities</button>
+                    <button class="tab-btn" data-tab="scans">Scan History</button>
+                </div>
+
+                <div class="tab-content active" id="subdomains-tab">
+                    <div class="table-controls">
+                        <input type="text" class="search-input" placeholder="Search subdomains..."
+                            id="subdomain-search">
+                        <label><input type="checkbox" id="alive-only"> Alive only</label>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Subdomain</th>
+                                <th>IP</th>
+                                <th>Status</th>
+                                <th>Title</th>
+                                <th>Tech</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subdomains-tbody"></tbody>
+                    </table>
+                    <div class="pagination" id="subdomains-pagination"></div>
+                </div>
+
+                <div class="tab-content" id="urls-tab">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th>Source</th>
+                                <th>Params</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urls-tbody"></tbody>
+                    </table>
+                    <div class="pagination" id="urls-pagination"></div>
+                </div>
+
+                <div class="tab-content" id="vulnerabilities-tab">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Severity</th>
+                                <th>Type</th>
+                                <th>URL</th>
+                                <th>Tool</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vulns-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="tab-content" id="scans-tab">
+                    <div id="project-scans-list"></div>
+                </div>
+            </section>
+
+            <!-- Scans Page -->
+            <section class="page" id="scans-page">
+                <div id="all-scans-list"></div>
+            </section>
+
+            <!-- Vulnerabilities Page -->
+            <section class="page" id="vulnerabilities-page">
+                <div class="vuln-filters">
+                    <select id="severity-filter">
+                        <option value="">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <table class="data-table" id="all-vulns-table">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Type</th>
+                            <th>URL</th>
+                            <th>Project</th>
+                            <th>Tool</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-vulns-tbody"></tbody>
+                </table>
+            </section>
+
+            <!-- Tools Page -->
+            <section class="page" id="tools-page">
+                <div class="tools-grid" id="tools-grid"></div>
+            </section>
+        </main>
+
+        <!-- Scan Live View Modal -->
+        <div class="modal" id="scan-modal">
+            <div class="modal-content scan-modal">
+                <div class="modal-header">
+                    <h2>Scan Progress</h2>
+                    <button class="close-btn" onclick="closeModal('scan-modal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="scan-status">
+                        <span class="status-badge" id="modal-scan-status">Running</span>
+                        <span id="modal-scan-type">subdomain</span>
+                    </div>
+                    <div class="scan-logs" id="scan-logs">
+                        <pre id="scan-logs-content"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Project Modal -->
+        <div class="modal" id="new-project-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Create New Project</h2>
+                    <button class="close-btn" onclick="closeModal('new-project-modal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-project-form">
+                        <div class="form-group">
+                            <label>Project Name</label>
+                            <input type="text" id="project-name-input" required placeholder="My Bug Bounty Target">
+                        </div>
+                        <div class="form-group">
+                            <label>Target Domain</label>
+                            <input type="text" id="project-domain-input" required placeholder="example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Description (optional)</label>
+                            <textarea id="project-desc-input" placeholder="Notes about this target..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('new-project-modal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Create Project</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/websocket.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
